@@ -19,16 +19,13 @@ enum state{
 	WEAKLY_TAKEN =2,
 	STRONGLY_TAKEN =3
 };
-unsigned power(unsigned exp) {
-    unsigned long long result = 1;
-	unsigned base = 2;
-    while (exp > 0) {
-        if (exp)            
-            result *= base;
-        base *= base;        
-        exp -= 1;             
+unsigned power(unsigned size)
+{
+    unsigned res = 1;
+    for (unsigned i = 0; i < size; ++i) {
+        res *= 2;
     }
-    return result;
+    return res;
 }
 
 class BTB{
@@ -50,21 +47,27 @@ class BTB{
 };
 
 BTB bp;
+uint32_t bitWiseXOR(uint32_t pc)
+{
+    uint32_t temp=0;
+    //if the branch is there we need to use direct mapping using xor the lsb or the middle bits if the table is global
+    if(bp.m_isGlobalTable)
+    {
+        if(bp.m_Shared==using_share_lsb)
+        {
+            //get the lowest historySize  bits from the pc
+            temp=(pc>>2)% power(bp.m_historySize);
+            return temp;
+        }
+        if(bp.m_Shared==using_share_mid)
+        {
+            //get the middle h bits from the 16 bits
+            temp=(pc>>16)% power(bp.m_historySize);
+            return temp;
+        }
+    }
+    return 0;
 
-uint32_t bitWiseXOR(uint32_t pc){
-	uint32_t res = 0;
-
-	if(bp.m_isGlobalTable){
-		if(bp.m_Shared == using_share_lsb){
-			res = (pc >> power(1))%power(bp.m_historySize);
-			return res;
-		}
-		if(bp.m_Shared == using_share_mid){
-			res = (pc >> power(4))%power(bp.m_historySize);
-			return res;
-		}	
-	}
-	return 0;
 }
 
 int ValidBTBParam(unsigned btbSize, unsigned historySize, unsigned tagSize, unsigned fsmState, int Shared){
