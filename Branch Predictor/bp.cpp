@@ -1,7 +1,11 @@
 /* 046267 Computer Architecture - HW #1                                 */
 /* This file should hold your implementation of the predictor simulator */
 
+#include <vector>
 #include "bp_api.h"
+#include <cmath>
+
+using  namespace std;
 
 typedef enum{
 	not_using_shared =0, 
@@ -27,22 +31,6 @@ unsigned power(unsigned exp) {
     return result;
 }
 
-uint32_t bitWiseXOR(uint32_t pc){
-	uint32_t res = 0;
-
-	if(bp.m_isGlobalTable){
-		if(bp.m_Shared == using_share_lsb){
-			res = (pc >> power(1))%power(bp.m_historySize);
-			return res;
-		}
-		if(bp.m_Shared == using_share_mid){
-			res = (pc >> power(4))%power(bp.m_historySize);
-			return res;
-		}	
-	}
-	return 0;
-}
-
 class BTB{
 	public :
 		unsigned m_btbSize;
@@ -60,7 +48,23 @@ class BTB{
 		vector<state> m_globalTable;
 		vector<vector<state>> m_localTable;
 };
+
 BTB bp;
+uint32_t bitWiseXOR(uint32_t pc){
+	uint32_t res = 0;
+
+	if(bp.m_isGlobalTable){
+		if(bp.m_Shared == using_share_lsb){
+			res = (pc >> power(1))%power(bp.m_historySize);
+			return res;
+		}
+		if(bp.m_Shared == using_share_mid){
+			res = (pc >> power(4))%power(bp.m_historySize);
+			return res;
+		}	
+	}
+	return 0;
+}
 int ValidBTBParam(unsigned btbSize, unsigned historySize, unsigned tagSize, unsigned fsmState, int Shared){
 	if(!(((btbSize <= 32) && (btbSize > 1) && (btbSize % 2 == 0))||(btbSize == 1))){
 		return -1;
@@ -162,13 +166,6 @@ bool BP_predict(uint32_t pc, uint32_t *dst){
 	*dst = pc+4;
 	return false;
 }
-
-void BP_update(uint32_t pc, uint32_t targetPc, bool taken, uint32_t pred_dst){
-
-
-	return;
-}
-
 
 void BP_update(uint32_t pc, uint32_t targetPc, bool taken, uint32_t pred_dst){
     bp.m_simStats.br_num++;
@@ -315,4 +312,5 @@ void BP_GetStats(SIM_stats *curStats){
     curStats->br_num=bp.m_simStats.br_num;
     return;
 }
+
 
