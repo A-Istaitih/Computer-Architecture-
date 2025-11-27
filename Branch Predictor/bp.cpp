@@ -35,7 +35,7 @@ class BTB{
 		unsigned m_historySize;
 		bool m_isGlobalHist;
 		bool m_isGlobalTable;
-		int m_Shared;
+		savedShared m_Shared;
 		state m_state;
 		SIM_stats m_simStats;
 		vector<uint32_t> m_tags;
@@ -74,20 +74,21 @@ int ValidBTBParam(unsigned btbSize, unsigned historySize, unsigned tagSize, unsi
 	if(!(((btbSize <= 32) && (btbSize > 1) && (btbSize % 2 == 0))||(btbSize == 1))){
 		return -1;
 	}
-	if(fsmState >3 || fsmState <0){
+	if(!(fsmState >= 0 && fsmState <= 3)){
 		return -1;
 	}
-	if(tagSize >30-log2(btbSize) || fsmState <0){
+	if(!(tagSize <= 30-log2(btbSize) && fsmState >= 0)){
 		return -1;
 	}
 	if(Shared <0 || Shared >2){
 		return -1;
 	}
-	if(historySize <1 || historySize >8){
+	if(!(historySize >= 1 && historySize <= 8)){
 		return -1;
 	}
 	return 0;
 }
+
 int BP_init(unsigned btbSize, unsigned historySize, unsigned tagSize, unsigned fsmState,
 			bool isGlobalHist, bool isGlobalTable, int Shared){
 	if(ValidBTBParam(btbSize,historySize,tagSize,fsmState,Shared) == -1){
@@ -98,7 +99,7 @@ int BP_init(unsigned btbSize, unsigned historySize, unsigned tagSize, unsigned f
 	bp.m_tagSize = tagSize;
 	bp.m_isGlobalHist = isGlobalHist;
 	bp.m_isGlobalTable = isGlobalTable;
-	bp.m_Shared = Shared;
+	bp.m_Shared = savedShared(Shared);
 	bp.m_state = static_cast<state>(fsmState);
 	bp.m_destination = vector<uint32_t>(btbSize,0);
 	bp.m_tags = vector<uint32_t>(btbSize,0);
@@ -106,7 +107,7 @@ int BP_init(unsigned btbSize, unsigned historySize, unsigned tagSize, unsigned f
 	bp.m_simStats = {0,0,0};
 
 	if(isGlobalHist){
-		bp.m_history = vector<unsigned>(historySize,0);
+		bp.m_history = vector<unsigned>(1,0);
 	}
 	else{
 		bp.m_history = vector<unsigned>(btbSize,0);
@@ -143,7 +144,7 @@ bool BP_predict(uint32_t pc, uint32_t *dst){
 	}
 
 	if(bp.m_isGlobalHist){
-		if(bp.m_localTable[pcIndex][bp.m_history[0] ^ xored] == STRONGLY_TAKEN || bp.m_localTable[pcIndex][bp.m_history[0] ^ xored] == WEAKLY_TAKEN){
+		if(bp.m_localTable[pcIndex][bp.m_history[0]] == STRONGLY_TAKEN || bp.m_localTable[pcIndex][bp.m_history[0]] == WEAKLY_TAKEN){
 			*dst = bp.m_destination[pcIndex];
 			return true;
 		}
@@ -154,7 +155,7 @@ bool BP_predict(uint32_t pc, uint32_t *dst){
 	}
 
 	if(bp.m_isGlobalTable){
-		if(bp.m_globalTable[bp.m_history[0] ^ xored] == STRONGLY_TAKEN || bp.m_globalTable[bp.m_history[0] ^ xored] == WEAKLY_TAKEN){
+		if(bp.m_globalTable[bp.m_history[pcIndex] ^ xored] == STRONGLY_TAKEN || bp.m_globalTable[bp.m_history[pcIndex] ^ xored] == WEAKLY_TAKEN){
 			*dst = bp.m_destination[pcIndex];
 			return true;
 		}
@@ -164,7 +165,7 @@ bool BP_predict(uint32_t pc, uint32_t *dst){
 		}
 	}
 
-	if(bp.m_localTable[pcIndex][bp.m_history[0] ^ xored] == STRONGLY_TAKEN || bp.m_localTable[pcIndex][bp.m_history[0] ^ xored] == WEAKLY_TAKEN){
+	if(bp.m_localTable[pcIndex][bp.m_history[pcIndex]] == STRONGLY_TAKEN || bp.m_localTable[pcIndex][bp.m_history[pcIndex]] == WEAKLY_TAKEN){
 			*dst = bp.m_destination[pcIndex];
 			return true;
 	}
