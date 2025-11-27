@@ -50,6 +50,7 @@ class BTB{
 };
 
 BTB bp;
+
 uint32_t bitWiseXOR(uint32_t pc){
 	uint32_t res = 0;
 
@@ -65,6 +66,7 @@ uint32_t bitWiseXOR(uint32_t pc){
 	}
 	return 0;
 }
+
 int ValidBTBParam(unsigned btbSize, unsigned historySize, unsigned tagSize, unsigned fsmState, int Shared){
 	if(!(((btbSize <= 32) && (btbSize > 1) && (btbSize % 2 == 0))||(btbSize == 1))){
 		return -1;
