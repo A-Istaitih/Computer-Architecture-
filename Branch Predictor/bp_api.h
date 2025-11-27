@@ -10,8 +10,6 @@ extern "C" {
 
 #include <stdbool.h>
 #include <stdint.h>
-#include <vector>
-using namespace std;
 
 /* A structure to return information about the currect simulator state */
 typedef struct {
