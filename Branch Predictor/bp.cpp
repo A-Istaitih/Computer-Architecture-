@@ -68,20 +68,20 @@ uint32_t bitXOR(uint32_t pc)
 
 }
 
-int ValidBTBParam(unsigned btbSize, unsigned historySize, unsigned tagSize, unsigned fsmState, int Shared){
-	if(!(((btbSize <= 32) && (btbSize > 1) && (btbSize % 2 == 0))||(btbSize == 1))){
+int ValidBTBParam(unsigned btbSize, unsigned historySize, unsigned tagSize, unsigned fsmState, int Shared){ // check if the parameters are valid
+	if(!(((btbSize <= 32) && (btbSize > 1) && (btbSize % 2 == 0))||(btbSize == 1))){ // check btb size is valid
 		return -1;
 	}
-	if(!(fsmState >= 0 && fsmState <= 3)){
+	if(!(fsmState >= 0 && fsmState <= 3)){ // check fsm state is valid
 		return -1;
 	}
-	if(!(tagSize <= 30-log2(btbSize) && fsmState >= 0)){
+	if(!(tagSize <= 30-log2(btbSize) && fsmState >= 0)){ // check tag size is valid
 		return -1;
 	}
-	if(Shared <0 || Shared >2){
+	if(Shared <0 || Shared >2){// check shared param is valid
 		return -1;
 	}
-	if(!(historySize >= 1 && historySize <= 8)){
+	if(!(historySize >= 1 && historySize <= 8)){// check history size is valid
 		return -1;
 	}
 	return 0;
@@ -89,7 +89,7 @@ int ValidBTBParam(unsigned btbSize, unsigned historySize, unsigned tagSize, unsi
 
 int BP_init(unsigned btbSize, unsigned historySize, unsigned tagSize, unsigned fsmState,
 			bool isGlobalHist, bool isGlobalTable, int Shared){
-	if(ValidBTBParam(btbSize,historySize,tagSize,fsmState,Shared) == -1){
+	if(ValidBTBParam(btbSize,historySize,tagSize,fsmState,Shared) == -1){ // invalid parameters
 		return -1;
 	}	
 	bp.m_btbSize = btbSize;
@@ -120,8 +120,8 @@ int BP_init(unsigned btbSize, unsigned historySize, unsigned tagSize, unsigned f
 }
 
 bool BP_predict(uint32_t pc, uint32_t *dst){
-	uint32_t pcIndex = (pc >> 2) % bp.m_btbSize;
-	uint32_t pcTag = ((pc >> 2)/bp.m_btbSize) % power(bp.m_tagSize);
+	uint32_t pcIndex = (pc >> 2) % bp.m_btbSize; // index in the btb
+	uint32_t pcTag = ((pc >> 2)/bp.m_btbSize) % power(bp.m_tagSize); // tag bits
 
 	if(bp.m_branchExists[pcIndex] == false || bp.m_tags[pcIndex] != pcTag){ // not found in btb or tag mismatch
 		*dst = pc+4;
